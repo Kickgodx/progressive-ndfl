@@ -1,3 +1,7 @@
 __pycache__/
 .env
 .venv/
+history/
+*.pyc
+*.pyo
+.ruff_cache/
