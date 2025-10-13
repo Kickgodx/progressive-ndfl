@@ -5,3 +5,8 @@ history/
 *.pyc
 *.pyo
 .ruff_cache/
+
+# PyInstaller
+build/
+dist/
+*.manifest

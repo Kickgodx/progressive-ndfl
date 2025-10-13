@@ -27,23 +27,31 @@ GUI-приложение для расчета прогрессивного на
 
 ```text
 progressive_ndfl/
-├── main.py                 # Главный файл приложения
-├── requirements.txt        # Зависимости Python
-├── history/               # Папка с историей расчетов (создается автоматически)
-├── src/                   # Исходный код
-│   ├── calculators/       # Модули расчетов
-│   │   ├── __init__.py
-│   │   └── tax_calculator.py
-│   ├── gui/              # GUI компоненты
-│   │   ├── __init__.py
-│   │   └── main_window.py
-│   └── utils/             # Утилиты
-│       ├── __init__.py
-│       ├── export_utils.py
-│       ├── history_manager.py
-│       ├── validation_utils.py
-│       └── chart_utils.py
-└── README.md
+├── main.py                    # Главный файл приложения
+├── requirements.txt           # Зависимости Python
+├── build.bat                  # Быстрый запуск сборки (обертка)
+├── clean.bat                  # Быстрая очистка (обертка)
+├── README.md                  # Документация проекта
+├── build_tools/               # Инструменты и документация по сборке
+│   ├── build.bat              # Основной скрипт сборки EXE
+│   ├── clean.bat              # Скрипт очистки артефактов
+│   ├── calculator.spec        # Конфигурация PyInstaller
+│   ├── README.md              # Быстрый старт и обзор
+│   └── BUILD_INSTRUCTIONS.md  # Полная инструкция по сборке
+├── history/                   # История расчетов (создается автоматически)
+└── src/                       # Исходный код приложения
+    ├── calculators/           # Модули расчетов
+    │   ├── __init__.py
+    │   └── tax_calculator.py
+    ├── gui/                   # GUI компоненты
+    │   ├── __init__.py
+    │   └── main_window.py
+    └── utils/                 # Утилиты
+        ├── __init__.py
+        ├── export_utils.py
+        ├── history_manager.py
+        ├── validation_utils.py
+        └── chart_utils.py
 ```
 
 ## Установка зависимостей
@@ -54,9 +62,26 @@ pip install -r requirements.txt
 
 ## Запуск
 
+### Из исходного кода
+
 ```bash
 python main.py
 ```
+
+### Создание EXE файла
+
+Для создания автономного .exe файла запустите:
+
+```bash
+build.bat
+```
+
+Готовый файл будет в папке `dist/NDFL_Calculator.exe`
+
+**Документация по сборке:**
+
+- [build_tools/README.md](build_tools/README.md) - Быстрый старт и обзор
+- [build_tools/BUILD_INSTRUCTIONS.md](build_tools/BUILD_INSTRUCTIONS.md) - Полная инструкция
 
 ## Горячие клавиши
 
