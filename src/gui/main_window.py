@@ -325,6 +325,8 @@ class TaxApp(tk.Tk):
             "eff_rate": eff_rate,
             "breakdown": breakdown,
             "monthly_data": monthly,
+            "monthly_gross": f"{gross_income / 12:,.0f}".replace(",", " "),
+            "monthly_netto": f"{netto_income / 12:,.0f}".replace(",", " "),
         }
 
         # Добавляем в историю
@@ -375,7 +377,7 @@ class TaxApp(tk.Tk):
 
     def show_history(self):
         """Показать историю расчетов"""
-        history = self.history_manager.get_history(10)  # Последние 10 расчетов
+        history = self.history_manager.get_history(20)  # Последние 20 расчетов
 
         if not history:
             messagebox.showinfo("История", "История расчетов пуста")
@@ -384,7 +386,7 @@ class TaxApp(tk.Tk):
         # Создаем окно истории
         history_window = tk.Toplevel(self)
         history_window.title("История расчетов")
-        history_window.geometry("600x400")
+        history_window.geometry("900x400")
 
         # Список истории
         history_frame = ttk.Frame(history_window)
@@ -403,9 +405,12 @@ class TaxApp(tk.Tk):
             calc_type = "Gross→Netto" if calc["calc_type"] == "gross" else "Netto→Gross"
             gross = f"{calc['gross_income']:,.0f}".replace(",", " ")
             netto = f"{calc['netto_income']:,.0f}".replace(",", " ")
+            monthly_gross = calc["monthly_gross"]
+            monthly_netto = calc["monthly_netto"]
 
             history_listbox.insert(
-                tk.END, f"{timestamp} | {calc_type} | Gross: {gross} | Netto: {netto}"
+                tk.END,
+                f"{timestamp} | {calc_type} | Gross: {gross} руб. | Netto: {netto} руб. | Monthly AVG Gross: {monthly_gross} руб. | Monthly AVG Netto: {monthly_netto} руб.",
             )
 
         # Кнопки управления
