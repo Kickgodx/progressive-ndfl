@@ -2,6 +2,7 @@
 Главное окно приложения
 """
 
+import logging
 import tkinter as tk
 from tkinter import ttk, messagebox
 from decimal import Decimal
@@ -22,6 +23,8 @@ class TaxApp(tk.Tk):
 
     def __init__(self):
         super().__init__()
+        logging.info("Инициализация главного окна приложения")
+
         self.title("Прогрессивный калькулятор НДФЛ РФ (с 2025)")
         self.geometry("1000x700")
         self.resizable(True, True)
@@ -42,6 +45,8 @@ class TaxApp(tk.Tk):
 
         # Создание интерфейса
         self._create_ui()
+
+        logging.info("Главное окно успешно инициализировано")
 
     def _create_ui(self):
         """Создать пользовательский интерфейс"""
@@ -227,42 +232,55 @@ class TaxApp(tk.Tk):
 
     def _on_calculate(self):
         """Обработчик кнопки расчета"""
-        self.out_text.delete("1.0", tk.END)
+        try:
+            logging.info("Начало обработки расчета")
+            self.out_text.delete("1.0", tk.END)
 
-        # Сбросить цвета полей
-        self._reset_field_colors()
+            # Сбросить цвета полей
+            self._reset_field_colors()
 
-        # Валидация ввода
-        annual_input = self.annual_var.get().strip()
-        monthly_input = self.monthly_var.get().strip()
+            # Валидация ввода
+            annual_input = self.annual_var.get().strip()
+            monthly_input = self.monthly_var.get().strip()
 
-        is_valid, error_msg, validated_data = self.calculation_handler.validate_inputs(
-            annual_input, monthly_input
-        )
+            is_valid, error_msg, validated_data = (
+                self.calculation_handler.validate_inputs(annual_input, monthly_input)
+            )
 
-        if not is_valid:
-            # Подсвечиваем поля с ошибками
-            self._highlight_error_fields(annual_input, monthly_input)
-            messagebox.showerror("Ошибка ввода", error_msg)
-            return
+            if not is_valid:
+                # Подсвечиваем поля с ошибками
+                self._highlight_error_fields(annual_input, monthly_input)
+                logging.warning(f"Ошибка валидации: {error_msg}")
+                messagebox.showerror("Ошибка ввода", error_msg)
+                return
 
-        # Выполняем расчет
-        calc_type = self.calc_type.get()
-        self.current_calculation_data = self.calculation_handler.perform_calculation(
-            validated_data, calc_type
-        )
+            # Выполняем расчет
+            calc_type = self.calc_type.get()
+            self.current_calculation_data = (
+                self.calculation_handler.perform_calculation(validated_data, calc_type)
+            )
 
-        # Форматируем и выводим результаты
-        results_text = self.calculation_handler.format_results(
-            self.current_calculation_data
-        )
-        self.out_text.insert(tk.END, results_text)
+            # Форматируем и выводим результаты
+            results_text = self.calculation_handler.format_results(
+                self.current_calculation_data
+            )
+            self.out_text.insert(tk.END, results_text)
 
-        # Добавляем в историю
-        self.history_manager.add_calculation(self.current_calculation_data)
+            # Добавляем в историю
+            self.history_manager.add_calculation(self.current_calculation_data)
+            logging.info("Расчет добавлен в историю")
 
-        # Обновляем графики
-        self._update_charts()
+            # Обновляем графики
+            self._update_charts()
+
+            logging.info("Расчет успешно выполнен и отображен")
+
+        except Exception as e:
+            logging.exception(f"Ошибка при выполнении расчета в UI: {e}")
+            messagebox.showerror(
+                "Ошибка",
+                f"Произошла ошибка при расчете:\n{str(e)}\n\nПодробности в файле логов.",
+            )
 
     def _export_txt(self):
         """Экспорт в TXT"""
@@ -330,8 +348,13 @@ class TaxApp(tk.Tk):
 
     def _show_history(self):
         """Показать историю расчетов"""
-        dialog = HistoryDialog(self, self.history_manager)
-        dialog.show()
+        try:
+            logging.info("Открытие окна истории расчетов")
+            dialog = HistoryDialog(self, self.history_manager)
+            dialog.show()
+        except Exception as e:
+            logging.exception(f"Ошибка при открытии истории: {e}")
+            messagebox.showerror("Ошибка", f"Не удалось открыть историю:\n{str(e)}")
 
     def load_calculation_from_history(self, calc_data):
         """
@@ -352,36 +375,49 @@ class TaxApp(tk.Tk):
 
     def _update_charts(self):
         """Обновить графики"""
-        if not has_monthly_data(self.current_calculation_data):
-            self.notebook.tab(1, state="disabled")
-            self.notebook.select(0)
-            return
+        try:
+            if not has_monthly_data(self.current_calculation_data):
+                self.notebook.tab(1, state="disabled")
+                self.notebook.select(0)
+                logging.debug("Нет месячных данных для графиков")
+                return
 
-        # Очищаем предыдущие графики
-        for widget in self.chart_frame.winfo_children():
-            widget.destroy()
+            logging.info("Обновление графиков")
 
-        # Получаем данные
-        monthly_data = self.current_calculation_data.get("monthly_data")
-        calc_type = self.current_calculation_data.get("calc_type", "gross")
+            # Очищаем предыдущие графики
+            for widget in self.chart_frame.winfo_children():
+                widget.destroy()
 
-        # Конвертируем netto в gross если нужно
-        if calc_type == "netto":
-            monthly_gross = []
-            for netto_month in monthly_data:
-                if not isinstance(netto_month, Decimal):
-                    netto_month = Decimal(str(netto_month))
-                gross_month, _, _ = calculate_gross_from_netto(netto_month)
-                monthly_gross.append(gross_month)
-            monthly_data = monthly_gross
-        else:
-            monthly_data = [
-                d if isinstance(d, Decimal) else Decimal(str(d)) for d in monthly_data
-            ]
+            # Получаем данные
+            monthly_data = self.current_calculation_data.get("monthly_data")
+            calc_type = self.current_calculation_data.get("calc_type", "gross")
 
-        # Создаем графики
-        chart_widget = create_charts_frame(self.chart_frame, monthly_data, calc_type)
-        chart_widget.pack(fill=tk.BOTH, expand=True)
+            # Конвертируем netto в gross если нужно
+            if calc_type == "netto":
+                monthly_gross = []
+                for netto_month in monthly_data:
+                    if not isinstance(netto_month, Decimal):
+                        netto_month = Decimal(str(netto_month))
+                    gross_month, _, _ = calculate_gross_from_netto(netto_month)
+                    monthly_gross.append(gross_month)
+                monthly_data = monthly_gross
+            else:
+                monthly_data = [
+                    d if isinstance(d, Decimal) else Decimal(str(d))
+                    for d in monthly_data
+                ]
 
-        # Активируем вкладку графиков
-        self.notebook.tab(1, state="normal")
+            # Создаем графики
+            chart_widget = create_charts_frame(
+                self.chart_frame, monthly_data, calc_type
+            )
+            chart_widget.pack(fill=tk.BOTH, expand=True)
+
+            # Активируем вкладку графиков
+            self.notebook.tab(1, state="normal")
+
+            logging.info("Графики успешно обновлены")
+
+        except Exception as e:
+            logging.exception(f"Ошибка при обновлении графиков: {e}")
+            # Не показываем ошибку пользователю, это не критично

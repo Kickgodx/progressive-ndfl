@@ -2,6 +2,7 @@
 Обработчик экспорта данных
 """
 
+import logging
 from tkinter import messagebox
 from ...utils import (
     export_to_txt,
@@ -26,10 +27,17 @@ class ExportHandler:
             parent_window: Родительское окно для диалогов
         """
         if not calculation_data:
+            logging.warning("Попытка экспорта в TXT без данных расчета")
             messagebox.showwarning("Предупреждение", "Сначала выполните расчет")
             return
 
-        export_to_txt(results_text, parent_window)
+        try:
+            logging.info("Начало экспорта в TXT")
+            export_to_txt(results_text, parent_window)
+            logging.info("Экспорт в TXT завершен")
+        except Exception as e:
+            logging.exception(f"Ошибка при экспорте в TXT: {e}")
+            raise
 
     @staticmethod
     def export_csv(calculation_data, parent_window):
@@ -41,10 +49,17 @@ class ExportHandler:
             parent_window: Родительское окно для диалогов
         """
         if not calculation_data:
+            logging.warning("Попытка экспорта в CSV без данных расчета")
             messagebox.showwarning("Предупреждение", "Сначала выполните расчет")
             return
 
-        export_to_csv(calculation_data, parent_window)
+        try:
+            logging.info("Начало экспорта в CSV")
+            export_to_csv(calculation_data, parent_window)
+            logging.info("Экспорт в CSV завершен")
+        except Exception as e:
+            logging.exception(f"Ошибка при экспорте в CSV: {e}")
+            raise
 
     @staticmethod
     def export_json(calculation_data, parent_window):
@@ -56,10 +71,17 @@ class ExportHandler:
             parent_window: Родительское окно для диалогов
         """
         if not calculation_data:
+            logging.warning("Попытка экспорта в JSON без данных расчета")
             messagebox.showwarning("Предупреждение", "Сначала выполните расчет")
             return
 
-        export_to_json(calculation_data, parent_window)
+        try:
+            logging.info("Начало экспорта в JSON")
+            export_to_json(calculation_data, parent_window)
+            logging.info("Экспорт в JSON завершен")
+        except Exception as e:
+            logging.exception(f"Ошибка при экспорте в JSON: {e}")
+            raise
 
     @staticmethod
     def export_excel(calculation_data, parent_window):
@@ -71,10 +93,17 @@ class ExportHandler:
             parent_window: Родительское окно для диалогов
         """
         if not calculation_data:
+            logging.warning("Попытка экспорта в Excel без данных расчета")
             messagebox.showwarning("Предупреждение", "Сначала выполните расчет")
             return
 
-        export_to_excel(calculation_data, parent_window)
+        try:
+            logging.info("Начало экспорта в Excel")
+            export_to_excel(calculation_data, parent_window)
+            logging.info("Экспорт в Excel завершен")
+        except Exception as e:
+            logging.exception(f"Ошибка при экспорте в Excel: {e}")
+            raise
 
     @staticmethod
     def export_pdf(calculation_data, parent_window):
@@ -86,7 +115,14 @@ class ExportHandler:
             parent_window: Родительское окно для диалогов
         """
         if not calculation_data:
+            logging.warning("Попытка экспорта в PDF без данных расчета")
             messagebox.showwarning("Предупреждение", "Сначала выполните расчет")
             return
 
-        export_to_pdf(calculation_data, parent_window)
+        try:
+            logging.info("Начало экспорта в PDF")
+            export_to_pdf(calculation_data, parent_window)
+            logging.info("Экспорт в PDF завершен")
+        except Exception as e:
+            logging.exception(f"Ошибка при экспорте в PDF: {e}")
+            raise

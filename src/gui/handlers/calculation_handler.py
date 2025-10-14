@@ -2,6 +2,7 @@
 Обработчик логики расчетов
 """
 
+import logging
 from decimal import Decimal
 from ...calculators import (
     calculate_tax_by_annual,
@@ -27,7 +28,15 @@ class CalculationHandler:
         Returns:
             tuple: (is_valid, error_msg, validated_data)
         """
-        return InputValidator.validate_calculation_inputs(annual_input, monthly_input)
+        logging.debug(
+            f"Валидация входных данных: annual={annual_input}, monthly={monthly_input}"
+        )
+        result = InputValidator.validate_calculation_inputs(annual_input, monthly_input)
+        if result[0]:
+            logging.info("Валидация успешна")
+        else:
+            logging.warning(f"Ошибка валидации: {result[1]}")
+        return result
 
     @staticmethod
     def perform_calculation(validated_data, calc_type):
@@ -41,43 +50,62 @@ class CalculationHandler:
         Returns:
             dict: Результаты расчета
         """
-        # Получаем валидированные данные
-        if "annual" in validated_data:
-            annual = quant(validated_data["annual"])
-            monthly = None
-        else:
-            monthly = [quant(x) for x in validated_data["monthly"]]
-            annual = sum(monthly)
+        try:
+            logging.info(f"Начало расчета, тип: {calc_type}")
 
-        # Определяем тип расчета и выполняем соответствующие вычисления
-        if calc_type == "gross":
-            # Обычный расчет: gross -> netto
-            gross_income = annual
-            total_tax, breakdown = calculate_tax_by_annual(gross_income)
-            netto_income = gross_income - total_tax
-        else:
-            # Обратный расчет: netto -> gross
-            netto_income = annual
-            gross_income, total_tax, breakdown = calculate_gross_from_netto(
-                netto_income
+            # Получаем валидированные данные
+            if "annual" in validated_data:
+                annual = quant(validated_data["annual"])
+                monthly = None
+                logging.debug(f"Годовой доход: {annual}")
+            else:
+                monthly = [quant(x) for x in validated_data["monthly"]]
+                annual = sum(monthly)
+                logging.debug(f"Месячные доходы (12 значений), годовой итого: {annual}")
+
+            # Определяем тип расчета и выполняем соответствующие вычисления
+            if calc_type == "gross":
+                # Обычный расчет: gross -> netto
+                gross_income = annual
+                total_tax, breakdown = calculate_tax_by_annual(gross_income)
+                netto_income = gross_income - total_tax
+                logging.info(
+                    f"Расчет gross->netto: {gross_income} -> {netto_income} (налог: {total_tax})"
+                )
+            else:
+                # Обратный расчет: netto -> gross
+                netto_income = annual
+                gross_income, total_tax, breakdown = calculate_gross_from_netto(
+                    netto_income
+                )
+                logging.info(
+                    f"Расчет netto->gross: {netto_income} -> {gross_income} (налог: {total_tax})"
+                )
+
+            # Эффективная ставка
+            eff_rate = (
+                (total_tax / gross_income * 100) if gross_income > 0 else Decimal("0")
             )
+            logging.info(f"Эффективная ставка: {eff_rate:.2f}%")
 
-        # Эффективная ставка
-        eff_rate = (
-            (total_tax / gross_income * 100) if gross_income > 0 else Decimal("0")
-        )
+            result = {
+                "calc_type": calc_type,
+                "gross_income": gross_income,
+                "netto_income": netto_income,
+                "total_tax": total_tax,
+                "eff_rate": eff_rate,
+                "breakdown": breakdown,
+                "monthly_data": monthly,
+                "monthly_gross": float(gross_income / 12),
+                "monthly_netto": float(netto_income / 12),
+            }
 
-        return {
-            "calc_type": calc_type,
-            "gross_income": gross_income,
-            "netto_income": netto_income,
-            "total_tax": total_tax,
-            "eff_rate": eff_rate,
-            "breakdown": breakdown,
-            "monthly_data": monthly,
-            "monthly_gross": float(gross_income / 12),
-            "monthly_netto": float(netto_income / 12),
-        }
+            logging.info("Расчет завершен успешно")
+            return result
+
+        except Exception as e:
+            logging.exception(f"Ошибка при выполнении расчета: {e}")
+            raise
 
     @staticmethod
     def format_results(calc_data):
