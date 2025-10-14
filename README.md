@@ -29,9 +29,15 @@ GUI-приложение для расчета прогрессивного на
 progressive_ndfl/
 ├── main.py                    # Главный файл приложения
 ├── requirements.txt           # Зависимости Python
-├── build.bat                  # Быстрый запуск сборки (обертка)
-├── clean.bat                  # Быстрая очистка (обертка)
+├── build.bat                  # Быстрый запуск сборки (обертка для Windows)
+├── build.sh                   # Быстрый запуск сборки (обертка для Linux/macOS)
+├── clean.bat                  # Быстрая очистка (обертка для Windows)
+├── clean.sh                   # Быстрая очистка (обертка для Linux/macOS)
 ├── README.md                  # Документация проекта
+├── .github/                   # GitHub Actions CI/CD
+│   └── workflows/
+│       └── build.yml          # Автоматическая сборка для всех платформ
+├── .gitlab-ci.yml             # GitLab CI/CD конфигурация
 ├── build_tools/               # Инструменты и документация по сборке
 │   ├── build.bat              # Основной скрипт сборки EXE (Windows)
 │   ├── build.sh               # Основной скрипт сборки (Linux/macOS)

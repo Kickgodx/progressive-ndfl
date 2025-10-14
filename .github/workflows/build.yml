@@ -1,0 +1,194 @@
+name: Build NDFL Calculator
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    name: Build for Windows
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+      
+      - name: Build executable
+        run: .\build.bat
+        shell: cmd
+      
+      - name: Check build result
+        run: |
+          if (Test-Path "dist\NDFL_Calculator.exe") {
+            Write-Host "✅ Build successful!"
+            $size = (Get-Item "dist\NDFL_Calculator.exe").Length / 1MB
+            Write-Host "File size: $([math]::Round($size, 2)) MB"
+          } else {
+            Write-Host "❌ Build failed!"
+            exit 1
+          }
+        shell: pwsh
+      
+      - name: Upload Windows executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: NDFL_Calculator-Windows
+          path: dist/NDFL_Calculator.exe
+          retention-days: 30
+
+  build-linux:
+    name: Build for Linux
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk
+      
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+      
+      - name: Build executable
+        run: |
+          chmod +x build.sh
+          ./build.sh
+      
+      - name: Check build result
+        run: |
+          if [ -f "dist/NDFL_Calculator" ]; then
+            echo "✅ Build successful!"
+            ls -lh dist/NDFL_Calculator
+            file dist/NDFL_Calculator
+          else
+            echo "❌ Build failed!"
+            exit 1
+          fi
+      
+      - name: Upload Linux executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: NDFL_Calculator-Linux
+          path: dist/NDFL_Calculator
+          retention-days: 30
+
+  build-macos:
+    name: Build for macOS
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+      
+      - name: Build executable
+        run: |
+          chmod +x build.sh
+          ./build.sh
+      
+      - name: Check build result
+        run: |
+          if [ -f "dist/NDFL_Calculator" ]; then
+            echo "✅ Build successful!"
+            ls -lh dist/NDFL_Calculator
+            file dist/NDFL_Calculator
+          else
+            echo "❌ Build failed!"
+            exit 1
+          fi
+      
+      - name: Upload macOS executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: NDFL_Calculator-macOS
+          path: dist/NDFL_Calculator
+          retention-days: 30
+
+  create-release:
+    name: Create Release
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      
+      - name: Prepare release files
+        run: |
+          mkdir -p release
+          cp artifacts/NDFL_Calculator-Windows/NDFL_Calculator.exe release/NDFL_Calculator-Windows.exe
+          cp artifacts/NDFL_Calculator-Linux/NDFL_Calculator release/NDFL_Calculator-Linux
+          cp artifacts/NDFL_Calculator-macOS/NDFL_Calculator release/NDFL_Calculator-macOS
+          
+          # Create zip archives
+          cd release
+          zip NDFL_Calculator-Windows.zip NDFL_Calculator-Windows.exe
+          tar -czf NDFL_Calculator-Linux.tar.gz NDFL_Calculator-Linux
+          tar -czf NDFL_Calculator-macOS.tar.gz NDFL_Calculator-macOS
+          
+          # Show files
+          ls -lh
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            release/NDFL_Calculator-Windows.zip
+            release/NDFL_Calculator-Linux.tar.gz
+            release/NDFL_Calculator-macOS.tar.gz
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
