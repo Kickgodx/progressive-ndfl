@@ -48,7 +48,7 @@ cd build_tools
 | `build.sh`              | Скрипт сборки для macOS/Linux       |
 | `clean.bat`             | Очистка артефактов (Windows)        |
 | `clean.sh`              | Очистка артефактов (macOS/Linux)    |
-| `calculator.spec`       | Конфигурация PyInstaller            |
+| `calculator-windows.spec` | Конфигурация PyInstaller (опционально для Windows) |
 | `README.md`             | Этот файл - быстрый старт           |
 | `BUILD_INSTRUCTIONS.md` | Полная инструкция по сборке         |
 
@@ -97,9 +97,9 @@ clean.bat
 ./clean.sh
 ```
 
-### Настроить параметры
+### Настроить параметры (опционально)
 
-Отредактируйте `calculator.spec`
+Отредактируйте `calculator-windows.spec` (для Windows)
 
 ---
 

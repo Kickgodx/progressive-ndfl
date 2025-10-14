@@ -33,9 +33,11 @@ progressive_ndfl/
 ├── clean.bat                  # Быстрая очистка (обертка)
 ├── README.md                  # Документация проекта
 ├── build_tools/               # Инструменты и документация по сборке
-│   ├── build.bat              # Основной скрипт сборки EXE
-│   ├── clean.bat              # Скрипт очистки артефактов
-│   ├── calculator.spec        # Конфигурация PyInstaller
+│   ├── build.bat              # Основной скрипт сборки EXE (Windows)
+│   ├── build.sh               # Основной скрипт сборки (Linux/macOS)
+│   ├── clean.bat              # Скрипт очистки артефактов (Windows)
+│   ├── clean.sh               # Скрипт очистки артефактов (Linux/macOS)
+│   ├── calculator-windows.spec # Конфигурация PyInstaller (опционально)
 │   ├── README.md              # Быстрый старт и обзор
 │   └── BUILD_INSTRUCTIONS.md  # Полная инструкция по сборке
 ├── history/                   # История расчетов и файлы логов

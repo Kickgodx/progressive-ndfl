@@ -21,27 +21,28 @@ case "$PLATFORM" in
         ;;
     *)
         echo "Unsupported platform: $PLATFORM"
-        exit 1
+        OUTPUT_NAME="NDFL_Calculator"
+        # exit 1
         ;;
 esac
 
-echo "Target platform: $PLATFORM_NAME"
+# echo "Target platform: $PLATFORM_NAME"
 echo ""
 
 # Проверяем наличие Python
-if ! command -v python3 &> /dev/null; then
+if ! command -v python &> /dev/null; then
     echo "Error: Python 3 is not installed"
     exit 1
 fi
 
 echo "Python version:"
-python3 --version
+python --version
 echo ""
 
 # Проверяем/создаем виртуальное окружение
 if [ ! -d ".venv" ]; then
     echo "Creating virtual environment..."
-    python3 -m venv .venv
+    python -m venv .venv
     echo ""
 fi
 
@@ -61,6 +62,13 @@ echo ""
 echo "Creating executable file..."
 echo "This may take a few minutes..."
 echo ""
+
+# Удаляем старый spec файл если он есть (может остаться от предыдущей сборки)
+if [ -f "NDFL_Calculator.spec" ]; then
+    rm -f "NDFL_Calculator.spec"
+    echo "Removed old NDFL_Calculator.spec file"
+    echo ""
+fi
 
 pyinstaller \
     --onefile \

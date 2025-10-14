@@ -17,6 +17,13 @@ echo Creating EXE file...
 echo This may take a few minutes...
 echo.
 
+REM Remove old auto-generated spec file if it exists
+if exist "NDFL_Calculator.spec" (
+    del /q "NDFL_Calculator.spec"
+    echo Removed old NDFL_Calculator.spec file
+    echo.
+)
+
 pyinstaller ^
     --onefile ^
     --windowed ^

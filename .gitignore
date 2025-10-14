@@ -11,3 +11,5 @@ history/
 build/
 dist/
 *.manifest
+# Игнорируем spec файлы в корне (автогенерируемые PyInstaller)
+/NDFL_Calculator.spec

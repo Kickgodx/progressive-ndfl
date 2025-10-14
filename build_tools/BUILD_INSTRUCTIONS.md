@@ -65,11 +65,11 @@ pip install -r requirements.txt
 pyinstaller --onefile --windowed --name "NDFL_Calculator" main.py
 ```
 
-**Вариант Б - С настройками (рекомендуется):**
+**Вариант Б - С настройками (для Windows, опционально):**
 
 ```bash
 cd build_tools
-pyinstaller calculator.spec
+pyinstaller calculator-windows.spec
 ```
 
 ### Шаг 3: Результат
@@ -99,9 +99,9 @@ EXE файл: `dist/NDFL_Calculator.exe`
 pyinstaller --onefile --windowed --icon=icon.ico --name "NDFL_Calculator" main.py
 ```
 
-### Настройка через spec файл
+### Настройка через spec файл (опционально для Windows)
 
-Отредактируйте `build_tools/calculator.spec` для тонкой настройки:
+Отредактируйте `build_tools/calculator-windows.spec` для тонкой настройки:
 
 - Список скрытых импортов
 - Исключаемые модули
@@ -301,7 +301,9 @@ progressive_ndfl/
 ├── dist/               # Готовый EXE файл
 │   └── NDFL_Calculator.exe
 └── build_tools/
-    └── calculator.spec # Конфигурация
+    ├── build.bat       # Скрипт сборки Windows
+    ├── build.sh        # Скрипт сборки Linux/macOS
+    └── calculator-windows.spec # Конфигурация (опционально)
 ```
 
 ### Очистка
