@@ -32,7 +32,7 @@ class HistoryManager:
             with open(self.history_file, "w", encoding="utf-8") as f:
                 json.dump(self.history, f, ensure_ascii=False, indent=2)
             return True
-        except (OSError, IOError, json.JSONEncodeError):
+        except (OSError, IOError, TypeError):
             return False
 
     def add_calculation(self, calc_data: dict):

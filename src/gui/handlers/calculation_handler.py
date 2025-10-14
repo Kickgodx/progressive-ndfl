@@ -75,8 +75,8 @@ class CalculationHandler:
             "eff_rate": eff_rate,
             "breakdown": breakdown,
             "monthly_data": monthly,
-            "monthly_gross": f"{gross_income / 12:,.0f}".replace(",", " "),
-            "monthly_netto": f"{netto_income / 12:,.0f}".replace(",", " "),
+            "monthly_gross": float(gross_income / 12),
+            "monthly_netto": float(netto_income / 12),
         }
 
     @staticmethod
@@ -104,9 +104,7 @@ class CalculationHandler:
         )
         out_lines.append("")
         out_lines.append(
-            f"Годовой доход до налогов (gross): {gross_income:,} руб.".replace(
-                ",", " "
-            )
+            f"Годовой доход до налогов (gross): {gross_income:,} руб.".replace(",", " ")
         )
         out_lines.append(
             f"Годовой доход после налогов (netto): {netto_income:,} руб.".replace(
@@ -204,7 +202,9 @@ class CalculationHandler:
                 )
 
         out_lines.append("")
-        out_lines.append("Когда достигнуты пороги (порог -> месяц, кумулятивная сумма):")
+        out_lines.append(
+            "Когда достигнуты пороги (порог -> месяц, кумулятивная сумма):"
+        )
         for threshold, (mth, csum) in reached.items():
             if mth is None:
                 out_lines.append(
@@ -220,4 +220,3 @@ class CalculationHandler:
                 )
 
         return out_lines
-
