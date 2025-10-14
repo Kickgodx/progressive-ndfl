@@ -23,9 +23,13 @@ variables:
 build:linux:
   extends: .build_template
   image: python:${PYTHON_VERSION}-slim
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'master' || $CI_COMMIT_BRANCH == 'main'
+      when: always
+    - when: manual
   before_script:
     - apt-get update
-    - apt-get install -y python3-tk binutils
+    - apt-get install -y python3-tk binutils file
     - python --version
     - python -m pip install --upgrade pip
     - pip install -r requirements.txt
@@ -60,6 +64,10 @@ build:linux:
 #   tags:
 #     - windows  # Требуется runner с этим тегом
 #   image: python:${PYTHON_VERSION}-windowsservercore
+#   rules:
+#     - if: $CI_COMMIT_BRANCH == 'master' || $CI_COMMIT_BRANCH == 'main'
+#       when: always
+#     - when: manual
 #   script:
 #     - echo "Building for Windows..."
 #     - python --version
@@ -82,6 +90,10 @@ build:linux:
 #   tags:
 #     - macos  # Требуется runner с этим тегом
 #   image: python:${PYTHON_VERSION}
+#   rules:
+#     - if: $CI_COMMIT_BRANCH == 'master' || $CI_COMMIT_BRANCH == 'main'
+#       when: always
+#     - when: manual
 #   before_script:
 #     - python --version
 #     - python -m pip install --upgrade pip
