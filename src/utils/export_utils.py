@@ -15,6 +15,24 @@ try:
 except ImportError:
     EXCEL_AVAILABLE = False
 
+try:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.platypus import (
+        SimpleDocTemplate,
+        Table,
+        TableStyle,
+        Paragraph,
+        Spacer,
+    )
+    from reportlab.lib import colors
+    from reportlab.lib.enums import TA_CENTER
+
+    PDF_AVAILABLE = True
+except ImportError:
+    PDF_AVAILABLE = False
+
 
 def export_to_txt(results_text: str, parent_window=None):
     """Экспорт результатов в текстовый файл"""
@@ -68,6 +86,18 @@ def export_to_csv(calculation_data: dict, parent_window=None):
                     [
                         "Годовой доход после налогов",
                         calculation_data.get("netto_income", 0),
+                    ]
+                )
+                writer.writerow(
+                    [
+                        "Средний месячный доход до налогов",
+                        float(calculation_data.get("monthly_gross", 0)),
+                    ]
+                )
+                writer.writerow(
+                    [
+                        "Средний месячный доход после налогов",
+                        float(calculation_data.get("monthly_netto", 0)),
                     ]
                 )
                 writer.writerow(
@@ -126,6 +156,8 @@ def export_to_json(calculation_data: dict, parent_window=None):
                 "calculation_type": calculation_data.get("calc_type", ""),
                 "gross_income": float(calculation_data.get("gross_income", 0)),
                 "netto_income": float(calculation_data.get("netto_income", 0)),
+                "monthly_gross": float(calculation_data.get("monthly_gross", 0)),
+                "monthly_netto": float(calculation_data.get("monthly_netto", 0)),
                 "total_tax": float(calculation_data.get("total_tax", 0)),
                 "effective_rate": float(calculation_data.get("eff_rate", 0)),
                 "breakdown": [
@@ -217,6 +249,16 @@ def export_to_excel(calculation_data: dict, parent_window=None):
             ws[f"B{row}"].number_format = "#,##0.00"
 
             row += 1
+            ws[f"A{row}"] = "Средний месячный доход до налогов (руб.)"
+            ws[f"B{row}"] = float(calculation_data.get("monthly_gross", 0))
+            ws[f"B{row}"].number_format = "#,##0.00"
+
+            row += 1
+            ws[f"A{row}"] = "Средний месячный доход после налогов (руб.)"
+            ws[f"B{row}"] = float(calculation_data.get("monthly_netto", 0))
+            ws[f"B{row}"].number_format = "#,##0.00"
+
+            row += 1
             ws[f"A{row}"] = "Общая сумма налога (руб.)"
             ws[f"B{row}"] = float(calculation_data.get("total_tax", 0))
             ws[f"B{row}"].number_format = "#,##0.00"
@@ -290,4 +332,209 @@ def export_to_excel(calculation_data: dict, parent_window=None):
 
     except Exception as e:
         messagebox.showerror("Ошибка", f"Не удалось сохранить Excel файл:\n{e}")
+        return False
+
+
+def export_to_pdf(calculation_data: dict, parent_window=None):
+    """Экспорт данных расчета в PDF"""
+    if not PDF_AVAILABLE:
+        messagebox.showerror(
+            "Ошибка",
+            "Для экспорта в PDF необходимо установить библиотеку reportlab:\n"
+            "pip install reportlab",
+        )
+        return False
+
+    try:
+        filename = filedialog.asksaveasfilename(
+            parent=parent_window,
+            defaultextension=".pdf",
+            filetypes=[("PDF файлы", "*.pdf"), ("Все файлы", "*.*")],
+            title="Сохранить данные в PDF",
+        )
+
+        if filename:
+            # Используем встроенные шрифты reportlab (работают везде)
+            font_name = "Helvetica"
+            font_name_bold = "Helvetica-Bold"
+
+            # Создаем PDF документ
+            doc = SimpleDocTemplate(filename, pagesize=A4)
+            elements = []
+
+            # Создаем стили
+            styles = getSampleStyleSheet()
+
+            # Заголовок
+            title_style = ParagraphStyle(
+                "CustomTitle",
+                parent=styles["Heading1"],
+                fontName=font_name_bold,
+                fontSize=16,
+                alignment=TA_CENTER,
+                spaceAfter=12,
+            )
+
+            # Обычный текст
+            normal_style = ParagraphStyle(
+                "CustomNormal",
+                parent=styles["Normal"],
+                fontName=font_name,
+                fontSize=10,
+                spaceAfter=6,
+            )
+
+            # Добавляем заголовок
+            elements.append(
+                Paragraph(
+                    "Progressive NDFL Calculator (Russian Federation)", title_style
+                )
+            )
+            elements.append(
+                Paragraph(
+                    f"Calculation date: {datetime.now().strftime('%d.%m.%Y %H:%M')}",
+                    normal_style,
+                )
+            )
+            elements.append(Spacer(1, 0.5 * cm))
+
+            # Основные данные
+            calc_type_text = (
+                "Gross to Net"
+                if calculation_data.get("calc_type") == "gross"
+                else "Net to Gross"
+            )
+
+            data = [
+                ["Parameter", "Value"],
+                ["Calculation Type", calc_type_text],
+                [
+                    "Annual Gross Income",
+                    f"{float(calculation_data.get('gross_income', 0)):,.2f} RUB".replace(
+                        ",", " "
+                    ),
+                ],
+                [
+                    "Annual Net Income",
+                    f"{float(calculation_data.get('netto_income', 0)):,.2f} RUB".replace(
+                        ",", " "
+                    ),
+                ],
+                [
+                    "Avg Monthly Gross Income",
+                    f"{float(calculation_data.get('monthly_gross', 0)):,.2f} RUB".replace(
+                        ",", " "
+                    ),
+                ],
+                [
+                    "Avg Monthly Net Income",
+                    f"{float(calculation_data.get('monthly_netto', 0)):,.2f} RUB".replace(
+                        ",", " "
+                    ),
+                ],
+                [
+                    "Total Tax",
+                    f"{float(calculation_data.get('total_tax', 0)):,.2f} RUB".replace(
+                        ",", " "
+                    ),
+                ],
+                [
+                    "Effective Tax Rate",
+                    f"{float(calculation_data.get('eff_rate', 0)):.2f}%",
+                ],
+            ]
+
+            # Создаем таблицу
+            table = Table(data, colWidths=[10 * cm, 7 * cm])
+            table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                        ("FONTNAME", (0, 0), (-1, 0), font_name_bold),
+                        ("FONTSIZE", (0, 0), (-1, 0), 11),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                        ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                        ("FONTNAME", (0, 1), (-1, -1), font_name),
+                        ("FONTSIZE", (0, 1), (-1, -1), 10),
+                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                    ]
+                )
+            )
+            elements.append(table)
+            elements.append(Spacer(1, 0.7 * cm))
+
+            # Разбивка по ступеням
+            elements.append(Paragraph("<b>Tax Brackets Breakdown</b>", normal_style))
+            elements.append(Spacer(1, 0.3 * cm))
+
+            breakdown_data = [
+                [
+                    "Lower Bound",
+                    "Upper Bound",
+                    "Rate %",
+                    "Taxable\nAmount",
+                    "Tax",
+                ]
+            ]
+
+            for bracket in calculation_data.get("breakdown", []):
+                lower, upper, rate, taxable, tax = bracket
+                breakdown_data.append(
+                    [
+                        f"{float(lower) if lower else 0:,.0f}".replace(",", " "),
+                        f"{float(upper):,.0f}".replace(",", " ") if upper else "∞",
+                        f"{float(rate * 100):.0f}",
+                        f"{float(taxable):,.2f}".replace(",", " "),
+                        f"{float(tax):,.2f}".replace(",", " "),
+                    ]
+                )
+
+            breakdown_table = Table(
+                breakdown_data, colWidths=[3 * cm, 3 * cm, 2 * cm, 4 * cm, 4 * cm]
+            )
+            breakdown_table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("FONTNAME", (0, 0), (-1, 0), font_name_bold),
+                        ("FONTSIZE", (0, 0), (-1, 0), 9),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                        ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                        ("FONTNAME", (0, 1), (-1, -1), font_name),
+                        ("FONTSIZE", (0, 1), (-1, -1), 9),
+                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                    ]
+                )
+            )
+            elements.append(breakdown_table)
+
+            # Примечание
+            elements.append(Spacer(1, 0.5 * cm))
+            note_style = ParagraphStyle(
+                "Note",
+                parent=styles["Normal"],
+                fontName=font_name,
+                fontSize=8,
+                textColor=colors.grey,
+            )
+            elements.append(
+                Paragraph(
+                    "Note: Progressive tax rates apply only to the amount exceeding each threshold (marginal system). "
+                    "Tax brackets (2025): 13% up to 2.4M; 15% 2.4-5M; 18% 5-20M; 20% 20-50M; 22% over 50M RUB.",
+                    note_style,
+                )
+            )
+
+            # Генерируем PDF
+            doc.build(elements)
+
+            messagebox.showinfo("Успех", f"Данные сохранены в PDF файл:\n{filename}")
+            return True
+
+    except Exception as e:
+        messagebox.showerror("Ошибка", f"Не удалось сохранить PDF файл:\n{e}")
         return False
