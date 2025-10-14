@@ -399,19 +399,34 @@ class TaxApp(tk.Tk):
         history_listbox = tk.Listbox(history_frame, height=15)
         history_listbox.pack(fill=tk.BOTH, expand=True, pady=(5, 10))
 
-        # Заполняем список
-        for i, calc in enumerate(reversed(history)):
-            timestamp = calc["timestamp"][:19].replace("T", " ")
-            calc_type = "Gross→Netto" if calc["calc_type"] == "gross" else "Netto→Gross"
-            gross = f"{calc['gross_income']:,.0f}".replace(",", " ")
-            netto = f"{calc['netto_income']:,.0f}".replace(",", " ")
-            monthly_gross = calc["monthly_gross"]
-            monthly_netto = calc["monthly_netto"]
+        def refresh_history_list():
+            """Обновить список истории"""
+            nonlocal history
+            history = self.history_manager.get_history(20)
+            history_listbox.delete(0, tk.END)
 
-            history_listbox.insert(
-                tk.END,
-                f"{timestamp} | {calc_type} | Gross: {gross} руб. | Netto: {netto} руб. | Monthly AVG Gross: {monthly_gross} руб. | Monthly AVG Netto: {monthly_netto} руб.",
-            )
+            if not history:
+                history_window.destroy()
+                messagebox.showinfo("История", "История расчетов пуста")
+                return
+
+            for i, calc in enumerate(reversed(history)):
+                timestamp = calc["timestamp"][:19].replace("T", " ")
+                calc_type = (
+                    "Gross→Netto" if calc["calc_type"] == "gross" else "Netto→Gross"
+                )
+                gross = f"{calc['gross_income']:,.0f}".replace(",", " ")
+                netto = f"{calc['netto_income']:,.0f}".replace(",", " ")
+                monthly_gross = calc["monthly_gross"]
+                monthly_netto = calc["monthly_netto"]
+
+                history_listbox.insert(
+                    tk.END,
+                    f"{timestamp} | {calc_type} | Gross: {gross} руб. | Netto: {netto} руб. | Monthly AVG Gross: {monthly_gross} руб. | Monthly AVG Netto: {monthly_netto} руб.",
+                )
+
+        # Первоначальное заполнение списка
+        refresh_history_list()
 
         # Кнопки управления
         button_frame = ttk.Frame(history_frame)
@@ -436,8 +451,24 @@ class TaxApp(tk.Tk):
 
                 history_window.destroy()
 
+        def delete_selected():
+            selection = history_listbox.curselection()
+            if not selection:
+                messagebox.showwarning("Предупреждение", "Выберите запись для удаления")
+                return
+
+            index = len(history) - 1 - selection[0]  # Обратный индекс
+            if self.history_manager.delete_calculation(index):
+                # Обновляем список на месте без уведомления
+                refresh_history_list()
+            else:
+                messagebox.showerror("Ошибка", "Не удалось удалить запись")
+
         ttk.Button(
             button_frame, text="Загрузить выбранный", command=load_selected
+        ).pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Button(
+            button_frame, text="Удалить выбранный", command=delete_selected
         ).pack(side=tk.LEFT, padx=(0, 5))
         ttk.Button(
             button_frame,
