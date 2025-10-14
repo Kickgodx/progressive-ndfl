@@ -22,8 +22,6 @@ variables:
 # Сборка для Windows
 build:windows:
   extends: .build_template
-  tags:
-    - windows
   image: python:${PYTHON_VERSION}-windowsservercore
   script:
     - echo "Building for Windows..."
@@ -44,8 +42,6 @@ build:windows:
 # Сборка для Linux
 build:linux:
   extends: .build_template
-  tags:
-    - linux
   image: python:${PYTHON_VERSION}-slim
   before_script:
     - apt-get update
@@ -75,8 +71,6 @@ build:linux:
 # Сборка для macOS
 build:macos:
   extends: .build_template
-  tags:
-    - macos
   image: python:${PYTHON_VERSION}
   script:
     - echo "Building for macOS..."
