@@ -32,7 +32,7 @@ class HistoryManager:
             with open(self.history_file, "w", encoding="utf-8") as f:
                 json.dump(self.history, f, ensure_ascii=False, indent=2)
             return True
-        except (OSError, IOError, json.JSONEncodeError):
+        except (OSError, IOError, TypeError):
             return False
 
     def add_calculation(self, calc_data: dict):
@@ -50,6 +50,8 @@ class HistoryManager:
             "total_tax": float(calc_data.get("total_tax", 0)),
             "effective_rate": float(calc_data.get("eff_rate", 0)),
             "monthly_data": monthly_data,
+            "monthly_gross": calc_data.get("monthly_gross", 0),
+            "monthly_netto": calc_data.get("monthly_netto", 0),
         }
 
         self.history.append(history_entry)
@@ -70,6 +72,14 @@ class HistoryManager:
         """Очистить историю"""
         self.history = []
         self._save_history()
+
+    def delete_calculation(self, index: int):
+        """Удалить расчет из истории по индексу"""
+        if 0 <= index < len(self.history):
+            self.history.pop(index)
+            self._save_history()
+            return True
+        return False
 
     def get_last_calculation(self):
         """Получить последний расчет"""
