@@ -50,6 +50,8 @@ class HistoryManager:
             "total_tax": float(calc_data.get("total_tax", 0)),
             "effective_rate": float(calc_data.get("eff_rate", 0)),
             "monthly_data": monthly_data,
+            "monthly_gross": calc_data.get("monthly_gross", 0),
+            "monthly_netto": calc_data.get("monthly_netto", 0),
         }
 
         self.history.append(history_entry)
