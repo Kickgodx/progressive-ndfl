@@ -57,6 +57,8 @@ progressive_ndfl/
 ## Установка зависимостей
 
 ```bash
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -65,6 +67,7 @@ pip install -r requirements.txt
 ### Из исходного кода
 
 ```bash
+source .venv/bin/activate
 python main.py
 ```
 
