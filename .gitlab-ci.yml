@@ -33,7 +33,7 @@ build:linux:
   script:
     - echo "Building for Linux..."
     - python --version
-    - chmod +x build.sh
+    - chmod +x build.sh build_tools/build.sh
     - ./build.sh
     - |
       if [ -f "dist/NDFL_Calculator" ]; then
