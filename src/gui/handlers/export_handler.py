@@ -8,6 +8,7 @@ from ...utils import (
     export_to_csv,
     export_to_json,
     export_to_excel,
+    export_to_pdf,
 )
 
 
@@ -75,3 +76,17 @@ class ExportHandler:
 
         export_to_excel(calculation_data, parent_window)
 
+    @staticmethod
+    def export_pdf(calculation_data, parent_window):
+        """
+        Экспорт в PDF файл
+
+        Args:
+            calculation_data: Данные расчета
+            parent_window: Родительское окно для диалогов
+        """
+        if not calculation_data:
+            messagebox.showwarning("Предупреждение", "Сначала выполните расчет")
+            return
+
+        export_to_pdf(calculation_data, parent_window)
