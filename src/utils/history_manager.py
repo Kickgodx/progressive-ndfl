@@ -73,6 +73,14 @@ class HistoryManager:
         self.history = []
         self._save_history()
 
+    def delete_calculation(self, index: int):
+        """Удалить расчет из истории по индексу"""
+        if 0 <= index < len(self.history):
+            self.history.pop(index)
+            self._save_history()
+            return True
+        return False
+
     def get_last_calculation(self):
         """Получить последний расчет"""
         if self.history:
