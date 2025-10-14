@@ -1,4 +1,4 @@
-# Полная инструкция по сборке EXE
+# Полная инструкция по сборке
 
 ## 📋 Содержание
 
@@ -9,6 +9,7 @@
 5. [Устранение проблем](#устранение-проблем)
 6. [Альтернативные инструменты](#альтернативные-инструменты)
 7. [Тестирование](#тестирование)
+8. [Кросс-платформенная сборка](#кросс-платформенная-сборка)
 
 ---
 
@@ -16,19 +17,33 @@
 
 ### Автоматическая сборка (рекомендуется)
 
+**Windows:**
+
 Из корня проекта:
 
 ```bash
 build.bat
 ```
 
+**macOS / Linux:**
+
+Из корня проекта:
+
+```bash
+./build.sh
+```
+
 Скрипт автоматически:
 
 - Установит зависимости
-- Соберет EXE с оптимальными настройками
+- Создаст виртуальное окружение (для Unix)
+- Соберет исполняемый файл с оптимальными настройками
 - Покажет результат
 
-**Готовый файл:** `dist/NDFL_Calculator.exe`
+**Готовые файлы:**
+
+- Windows: `dist/NDFL_Calculator.exe`
+- macOS/Linux: `dist/NDFL_Calculator`
 
 **Время сборки:** 2-5 минут
 
@@ -322,3 +337,231 @@ clean.bat
 ```bash
 pyinstaller --name "NDFL_Calculator_v1.0" main.py
 ```
+
+---
+
+## Кросс-платформенная сборка
+
+### Общая информация
+
+PyInstaller создает исполняемые файлы **только для текущей платформы**. Это означает:
+
+- **Windows → Windows EXE** (.exe)
+- **macOS → macOS приложение** (без расширения)
+- **Linux → Linux бинарник** (без расширения)
+
+**Важно:** Нельзя собрать Windows EXE на macOS или наоборот!
+
+### Сборка для разных платформ
+
+#### Windows
+
+```bash
+# На Windows машине
+build.bat
+# Результат: dist/NDFL_Calculator.exe
+```
+
+#### macOS
+
+```bash
+# На macOS машине
+chmod +x build.sh  # Первый раз
+./build.sh
+# Результат: dist/NDFL_Calculator
+```
+
+**Особенности macOS:**
+
+- Автоматически создается виртуальное окружение
+- Поддержка Intel и Apple Silicon (M1/M2/M3)
+- Файл автоматически помечается как исполняемый
+
+#### Linux
+
+```bash
+# На Linux машине
+chmod +x build.sh  # Первый раз
+./build.sh
+# Результат: dist/NDFL_Calculator
+```
+
+**Особенности Linux:**
+
+- Требуется `python3-tk` (обычно уже установлен)
+- Файл автоматически помечается как исполняемый
+- Работает на большинстве дистрибутивов (Ubuntu, Fedora, Debian, etc.)
+
+### Стратегии распространения
+
+#### Вариант 1: Сборка на каждой платформе
+
+**Рекомендуется** для официального релиза.
+
+1. Соберите на Windows машине → `NDFL_Calculator.exe`
+2. Соберите на macOS машине → `NDFL_Calculator_macOS`
+3. Соберите на Linux машине → `NDFL_Calculator_Linux`
+4. Распространите все три файла
+
+#### Вариант 2: GitHub Actions / CI/CD
+
+Автоматическая сборка для всех платформ через GitHub Actions.
+
+Пример `.github/workflows/build.yml`:
+
+```yaml
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - run: .\build_tools\build.bat
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Windows
+          path: dist/NDFL_Calculator.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - run: chmod +x build_tools/build.sh
+      - run: ./build_tools/build.sh
+      - uses: actions/upload-artifact@v3
+        with:
+          name: macOS
+          path: dist/NDFL_Calculator
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - run: sudo apt-get install -y python3-tk
+      - run: chmod +x build_tools/build.sh
+      - run: ./build_tools/build.sh
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Linux
+          path: dist/NDFL_Calculator
+```
+
+#### Вариант 3: Только исходный код
+
+Для open-source проектов - пользователи сами собирают для своей платформы.
+
+### Требования по платформам
+
+#### Требования для Windows
+
+- Windows 10 или новее (64-bit)
+- Не требует установленного Python
+
+#### Требования для macOS
+
+- macOS 10.15 (Catalina) или новее
+- Intel или Apple Silicon (M1/M2/M3)
+- Не требует установленного Python
+
+#### Требования для Linux
+
+- Большинство современных дистрибутивов
+- x86_64 архитектура
+- Не требует установленного Python
+
+### Размеры исполняемых файлов
+
+Примерные размеры после сборки:
+
+- **Windows:** 50-80 МБ (.exe)
+- **macOS:** 55-85 МБ
+- **Linux:** 50-75 МБ
+
+Размер зависит от:
+
+- Версии Python
+- Количества зависимостей
+- Использования UPX компрессии
+
+### Тестирование кросс-платформенных сборок
+
+**Минимальный набор тестов:**
+
+1. ✅ Приложение запускается
+2. ✅ GUI отображается корректно
+3. ✅ Расчеты работают
+4. ✅ Экспорт файлов работает
+5. ✅ История сохраняется
+
+**Тестовые платформы:**
+
+- Windows 10/11
+- macOS 12+ (Monterey и новее)
+- Ubuntu 20.04/22.04 LTS
+
+### Устранение проблем по платформам
+
+#### macOS: "App can't be opened"
+
+```bash
+# Разблокировка приложения
+xattr -cr dist/NDFL_Calculator
+```
+
+#### Linux: "Permission denied"
+
+```bash
+# Сделать исполняемым
+chmod +x dist/NDFL_Calculator
+```
+
+#### Все платформы: tkinter не найден
+
+Убедитесь, что tkinter установлен:
+
+```bash
+# Windows - обычно включен
+# macOS - обычно включен
+# Linux - установить пакет
+sudo apt-get install python3-tk  # Ubuntu/Debian
+sudo dnf install python3-tkinter  # Fedora
+```
+
+### Полезные команды
+
+```bash
+# Проверка платформы
+python -c "import platform; print(platform.system())"
+
+# Проверка tkinter
+python -c "import tkinter; print('OK')"
+
+# Проверка размера файла
+# Windows
+dir dist\NDFL_Calculator.exe
+# macOS/Linux
+ls -lh dist/NDFL_Calculator
+
+# Запуск собранного приложения
+# Windows
+dist\NDFL_Calculator.exe
+# macOS/Linux
+./dist/NDFL_Calculator
+```
+
+---
+
+**Дата обновления документации:** 2025-10-15

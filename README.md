@@ -72,20 +72,28 @@ source .venv/bin/activate
 python main.py
 ```
 
-### Создание EXE файла
+### Создание исполняемого файла
 
-Для создания автономного .exe файла запустите:
+#### Windows
 
 ```bash
 build.bat
 ```
 
-Готовый файл будет в папке `dist/NDFL_Calculator.exe`
+Готовый файл: `dist/NDFL_Calculator.exe`
+
+#### macOS / Linux
+
+```bash
+./build.sh
+```
+
+Готовый файл: `dist/NDFL_Calculator`
 
 **Документация по сборке:**
 
 - [build_tools/README.md](build_tools/README.md) - Быстрый старт и обзор
-- [build_tools/BUILD_INSTRUCTIONS.md](build_tools/BUILD_INSTRUCTIONS.md) - Полная инструкция
+- [build_tools/BUILD_INSTRUCTIONS.md](build_tools/BUILD_INSTRUCTIONS.md) - Полная инструкция по сборке для всех платформ
 
 ## Горячие клавиши
 
